@@ -7,5 +7,3 @@ RUN clang -o carcer carcer.c -lseccomp -lpthread -static
 FROM alpine:3.18
 WORKDIR /iudex
 COPY --from=build /tmp/carcer /bin
-
-

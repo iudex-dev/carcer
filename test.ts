@@ -58,6 +58,13 @@ const test_program = async (config: TestConfig) => {
   return { good: true };
 };
 
+const cleanUp = async () => {
+  await Deno.remove(".input");
+  await Deno.remove(".output");
+  await Deno.remove(".error");
+  await Deno.remove("a.out");
+}
+
 const errors = [];
 for await (const file of Deno.readDir("./test")) {
   if (file.name.endsWith(".c")) {
@@ -71,3 +78,4 @@ await print("\n");
 if (errors.length > 0) {
   console.log(errors);
 }
+await cleanUp();

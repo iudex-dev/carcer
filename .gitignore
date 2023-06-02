@@ -1,0 +1,6 @@
+carcer
+**/.trace.output.*
+**/.input
+**/.error
+**/.output
+**/a.out

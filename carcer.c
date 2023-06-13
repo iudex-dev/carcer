@@ -509,7 +509,7 @@ void show_report() {
       "  \"real_time\": %d,\n"
       "  \"memory\": %ld,\n"
       "  \"exit_code\": %d,\n"
-      "  \"report\": \"%s\""
+      "  \"report\": \"%s\"\n"
       "}                                                \n";
 
   printf(JSON_template, Results.cpu_time_ms, Results.real_time_ms,

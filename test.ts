@@ -27,11 +27,15 @@ const extract_test_config = async (filename: string): Promise<TestConfig> => {
 };
 
 const compile_program = async (filename: string): Promise<number> => {
-  const proc = Deno.run({
-    cmd: ["gcc", filename, "-static"],
+  let compiler = "gcc";
+  if (filename.endsWith(".cc")) {
+    compiler = "g++";
+  }
+  const cmd = new Deno.Command(compiler, {
+    args: [filename, "-static"],
   });
-  const status = await proc.status();
-  proc.close();
+  const proc = cmd.spawn();
+  const status = await proc.status;
   return status.code;
 };
 
@@ -42,18 +46,23 @@ const test_program = async (config: TestConfig) => {
     return { good: false, error: "Compilation Failed" };
   }
   await Deno.writeFile(".input", tenc.encode(config.input));
-  const proc = Deno.run({
-    cmd: ["./carcer", "./a.out", "-i", ".input", "-o", ".output", "-e", ".error"],
+  const cmd = new Deno.Command("./carcer", {
+    args: ["./a.out", "-i", ".input", "-o", ".output", "-e", ".error"],
     stdout: "piped",
   });
-  const json = JSON.parse(tdec.decode(await proc.output()));
-  const output = await Deno.readTextFile(".output");
+  const proc = cmd.spawn();
+  const cmdOutput = await proc.output();
 
+  // Check report
+  const json = JSON.parse(tdec.decode(cmdOutput.stdout));
   if (json.report.trim() != config.report.trim()) {
     return { good: false, json, config };
   }
+
+  // Check output
+  const output = await Deno.readTextFile(".output");
   if (config.output && output.trim() != config.output.trim()) {
-    return { good: false, json, config, output };
+    return { good: false, json, config, cmdOutput };
   }
   return { good: true };
 };
@@ -63,11 +72,11 @@ const cleanUp = async () => {
   await Deno.remove(".output");
   await Deno.remove(".error");
   await Deno.remove("a.out");
-}
+};
 
 const errors = [];
 for await (const file of Deno.readDir("./test")) {
-  if (file.name.endsWith(".c")) {
+  if (file.name.endsWith(".c") || file.name.endsWith(".cc")) {
     const config = await extract_test_config(`./test/${file.name}`);
     const testResult = await test_program(config);
     await print(testResult.good ? "." : "X");

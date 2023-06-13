@@ -229,6 +229,9 @@ const int syscall_whitelist[] = {
     SCMP_SYS(getrandom),  // ???
     SCMP_SYS(lseek),      // ??? (add_numbers.c)
 
+    // C++ programs
+    SCMP_SYS(futex),
+
     // Minimal: 1) read from stdin, 2) write to stdout, and 3) exit
     SCMP_SYS(read),
     SCMP_SYS(write),
